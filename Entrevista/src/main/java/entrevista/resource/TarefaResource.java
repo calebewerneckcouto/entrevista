@@ -1,12 +1,12 @@
 package entrevista.resource;
 
-import java.time.Duration;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import entrevista.model.Pessoa;
 import entrevista.model.Tarefa;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.panache.common.Sort;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
@@ -77,52 +77,8 @@ public class TarefaResource {
     public List<Tarefa> listarTarefasPendentes() {
         return Tarefa.list("finalizado = false", Sort.ascending("prazo"));
     }
-
-    @GET
-    @Transactional
-    @Produces(MediaType.APPLICATION_JSON)
-    public List<PessoaDTO> listarPessoas() {
-        List<Pessoa> pessoas = Pessoa.listAll(Sort.by("nome"));
-
-        return pessoas.stream()
-                .map(this::mapToPessoaDTO)
-                .collect(Collectors.toList());
-    }
-
-    private PessoaDTO mapToPessoaDTO(Pessoa pessoa) {
-        PessoaDTO pessoaDTO = new PessoaDTO();
-        pessoaDTO.id = pessoa.id;
-        pessoaDTO.nome = pessoa.nome;
-        pessoaDTO.departamento = pessoa.departamento;
-        pessoaDTO.totalHorasTarefas = calcularTotalHorasTarefas(pessoa);
-        return pessoaDTO;
-    }
-
-    private long calcularTotalHorasTarefas(Pessoa pessoa) {
-        return pessoa.getTarefas().stream()
-                .mapToLong(tarefa -> calcularDuracaoTarefaEmHoras(tarefa))
-                .sum();
-    }
-
-    private long calcularDuracaoTarefaEmHoras(Tarefa tarefa) {
-        // Converte a duração de dias para horas
-        long duracaoEmHoras = tarefa.getDuracao().toHours();
-
-        // Calcula a diferença em horas entre o prazo e a data atual
-        long horasRestantes = Duration.between(tarefa.getPrazo().atStartOfDay(), LocalDate.now().atStartOfDay()).toHours();
-
-        // Retorna a duração em horas, limitada ao prazo
-        return duracaoEmHoras > horasRestantes ? horasRestantes : duracaoEmHoras;
-    }
-
-    public static class PessoaDTO {
-        public Long id;
-        public String nome;
-        public String departamento;
-        public long totalHorasTarefas;
-    }
-}
     
-
+    
+}
     
 

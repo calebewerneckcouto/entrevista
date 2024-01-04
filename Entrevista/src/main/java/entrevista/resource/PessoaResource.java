@@ -3,10 +3,12 @@ package entrevista.resource;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import entrevista.model.Pessoa;
-import io.quarkus.panache.common.Sort;
+import entrevista.model.Tarefa;
+import entrevista.resource.PessoaResource.DepartamentoDTO;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -57,40 +59,61 @@ public class PessoaResource {
             return Response.status(Response.Status.NOT_FOUND).entity("Pessoa não encontrada para o ID: " + id).build();
         }
     }
-
+    
     @GET
-    @Transactional
+    @Path("/departamentos")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<PessoaDTO> listarPessoas() {
-        List<Pessoa> pessoas = Pessoa.listAll(Sort.by("nome"));
+    public List<DepartamentoDTO> listarDepartamentosPessoa() {
+        List<Pessoa> pessoas = Pessoa.listAll();
+        List<Tarefa> tarefas = Tarefa.listAll();
 
-        return pessoas.stream()
-                .map(this::mapToPessoaDTO)
+        Map<String, Long> quantidadePessoasPorDepartamento = pessoas.stream()
+                .collect(Collectors.groupingBy(Pessoa::getDepartamento, Collectors.counting()));
+
+        Map<String, Long> quantidadeTarefasPorDepartamento = tarefas.stream()
+                .collect(Collectors.groupingBy(Tarefa::getDepartamento, Collectors.counting()));
+
+        return quantidadePessoasPorDepartamento.entrySet().stream()
+                .map(entry -> new DepartamentoDTO(entry.getKey(), entry.getValue(),
+                        quantidadeTarefasPorDepartamento.getOrDefault(entry.getKey(), 0L)))
                 .collect(Collectors.toList());
     }
 
-    private PessoaDTO mapToPessoaDTO(Pessoa pessoa) {
-        PessoaDTO pessoaDTO = new PessoaDTO();
-        pessoaDTO.id = pessoa.id;
-        pessoaDTO.nome = pessoa.nome;
-        pessoaDTO.departamento = pessoa.departamento;
-        pessoaDTO.totalHorasTarefas = calcularTotalHorasTarefas(pessoa);
-        return pessoaDTO;
+    public static class DepartamentoDTO {
+        private String nome;
+        private Long quantidadePessoas;
+        private Long quantidadeTarefas;
+
+        public DepartamentoDTO(String nome, Long quantidadePessoas, Long quantidadeTarefas) {
+            this.nome = nome;
+            this.quantidadePessoas = quantidadePessoas;
+            this.quantidadeTarefas = quantidadeTarefas;
+        }
+
+		public String getNome() {
+			return nome;
+		}
+
+		public void setNome(String nome) {
+			this.nome = nome;
+		}
+
+		public Long getQuantidadePessoas() {
+			return quantidadePessoas;
+		}
+
+		public void setQuantidadePessoas(Long quantidadePessoas) {
+			this.quantidadePessoas = quantidadePessoas;
+		}
+
+		public Long getQuantidadeTarefas() {
+			return quantidadeTarefas;
+		}
+
+		public void setQuantidadeTarefas(Long quantidadeTarefas) {
+			this.quantidadeTarefas = quantidadeTarefas;
+		}
+
+        
     }
-
-    private long calcularTotalHorasTarefas(Pessoa pessoa) {
-        return pessoa.getTarefas().stream()
-                .mapToLong(tarefa -> tarefa.getDuracao().toHours())
-                .sum();
-    }
-
-    public static class PessoaDTO {
-        public Long id;
-        public String nome;
-        public String departamento;
-        public long totalHorasTarefas;
-    }}
-    
-   
-    
-
+}
