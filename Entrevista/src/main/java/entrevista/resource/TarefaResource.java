@@ -1,10 +1,12 @@
 package entrevista.resource;
 
+import java.time.Duration;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import entrevista.model.Pessoa;
 import entrevista.model.Tarefa;
-import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.panache.common.Sort;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
@@ -76,19 +78,51 @@ public class TarefaResource {
         return Tarefa.list("finalizado = false", Sort.ascending("prazo"));
     }
 
-
     @GET
-    @Path("/departamentos")
-    public List<Pessoa> listarDepartamentos() {
-        PanacheQuery<Pessoa> pessoas = Pessoa.find("select t.departamento, count(t), sum(t.duracao.toHours()) from Tarefa t group by t.departamento");
-        return pessoas.page(1, 10).list();
+    @Transactional
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PessoaDTO> listarPessoas() {
+        List<Pessoa> pessoas = Pessoa.listAll(Sort.by("nome"));
+
+        return pessoas.stream()
+                .map(this::mapToPessoaDTO)
+                .collect(Collectors.toList());
     }
 
-    // Adicione outras funcionalidades conforme necessário
+    private PessoaDTO mapToPessoaDTO(Pessoa pessoa) {
+        PessoaDTO pessoaDTO = new PessoaDTO();
+        pessoaDTO.id = pessoa.id;
+        pessoaDTO.nome = pessoa.nome;
+        pessoaDTO.departamento = pessoa.departamento;
+        pessoaDTO.totalHorasTarefas = calcularTotalHorasTarefas(pessoa);
+        return pessoaDTO;
+    }
 
-    public static class DepartamentoInfo {
+    private long calcularTotalHorasTarefas(Pessoa pessoa) {
+        return pessoa.getTarefas().stream()
+                .mapToLong(tarefa -> calcularDuracaoTarefaEmHoras(tarefa))
+                .sum();
+    }
+
+    private long calcularDuracaoTarefaEmHoras(Tarefa tarefa) {
+        // Converte a duração de dias para horas
+        long duracaoEmHoras = tarefa.getDuracao().toHours();
+
+        // Calcula a diferença em horas entre o prazo e a data atual
+        long horasRestantes = Duration.between(tarefa.getPrazo().atStartOfDay(), LocalDate.now().atStartOfDay()).toHours();
+
+        // Retorna a duração em horas, limitada ao prazo
+        return duracaoEmHoras > horasRestantes ? horasRestantes : duracaoEmHoras;
+    }
+
+    public static class PessoaDTO {
+        public Long id;
+        public String nome;
         public String departamento;
-        public Long quantidadePessoas;
-        public Long quantidadeTarefas;
+        public long totalHorasTarefas;
     }
 }
+    
+
+    
+

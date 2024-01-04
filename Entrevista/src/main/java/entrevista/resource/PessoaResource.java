@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import entrevista.model.Pessoa;
-import entrevista.model.Tarefa;
-
+import io.quarkus.panache.common.Sort;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -61,11 +60,37 @@ public class PessoaResource {
 
     @GET
     @Transactional
-    public List<Pessoa> listarPessoas() {
-        return Pessoa.listAll();
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<PessoaDTO> listarPessoas() {
+        List<Pessoa> pessoas = Pessoa.listAll(Sort.by("nome"));
+
+        return pessoas.stream()
+                .map(this::mapToPessoaDTO)
+                .collect(Collectors.toList());
     }
-    
+
+    private PessoaDTO mapToPessoaDTO(Pessoa pessoa) {
+        PessoaDTO pessoaDTO = new PessoaDTO();
+        pessoaDTO.id = pessoa.id;
+        pessoaDTO.nome = pessoa.nome;
+        pessoaDTO.departamento = pessoa.departamento;
+        pessoaDTO.totalHorasTarefas = calcularTotalHorasTarefas(pessoa);
+        return pessoaDTO;
+    }
+
+    private long calcularTotalHorasTarefas(Pessoa pessoa) {
+        return pessoa.getTarefas().stream()
+                .mapToLong(tarefa -> tarefa.getDuracao().toHours())
+                .sum();
+    }
+
+    public static class PessoaDTO {
+        public Long id;
+        public String nome;
+        public String departamento;
+        public long totalHorasTarefas;
+    }}
     
    
     
-}
+
