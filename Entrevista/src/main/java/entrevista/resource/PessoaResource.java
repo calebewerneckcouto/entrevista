@@ -3,8 +3,11 @@ package entrevista.resource;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import entrevista.model.Pessoa;
+import entrevista.model.Tarefa;
+
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -57,9 +60,12 @@ public class PessoaResource {
     }
 
     @GET
+    @Transactional
     public List<Pessoa> listarPessoas() {
         return Pessoa.listAll();
     }
-
+    
+    
+   
     
 }

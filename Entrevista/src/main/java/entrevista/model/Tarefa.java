@@ -84,9 +84,6 @@ public class Tarefa extends PanacheEntityBase {
 		this.pessoa = pessoa;
 	}
 
-	public static Object em() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	
 
 }

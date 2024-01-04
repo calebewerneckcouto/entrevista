@@ -3,6 +3,7 @@ package entrevista.model;
 import java.util.List;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -19,8 +20,8 @@ public class Pessoa extends PanacheEntityBase {
 	public String nome;
 	public String departamento;
 
-	@OneToMany(mappedBy = "pessoa", fetch = FetchType.EAGER)
-	private List<Tarefa> tarefas;
+	@OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+    private List<Tarefa> tarefas;
 
 	public String getNome() {
 		return nome;
