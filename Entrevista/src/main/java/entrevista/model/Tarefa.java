@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,8 +24,9 @@ public class Tarefa extends PanacheEntityBase {
 	public Duration duracao;
 	public boolean finalizado;
 
-	@ManyToOne
+	@ManyToOne(cascade = CascadeType.MERGE)
 	public Pessoa pessoa;
+
 
 	public String getTitulo() {
 		return titulo;
@@ -80,6 +82,11 @@ public class Tarefa extends PanacheEntityBase {
 
 	public void setPessoa(Pessoa pessoa) {
 		this.pessoa = pessoa;
+	}
+
+	public static Object em() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

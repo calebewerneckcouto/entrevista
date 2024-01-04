@@ -23,11 +23,12 @@ import jakarta.ws.rs.core.Response;
 public class PessoaResource {
 
 	@POST
-    @Transactional 
-    public Pessoa adicionarPessoa(Pessoa pessoa) {
-        pessoa.persist();
-        return pessoa;
-    }
+	@Transactional
+	public Pessoa adicionarPessoa(Pessoa pessoa) {
+	    Pessoa.persist(pessoa);
+	    return pessoa;
+	}
+
 
     @PUT
     @Transactional
