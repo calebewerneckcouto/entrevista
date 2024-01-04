@@ -1,13 +1,12 @@
 package entrevista.resource;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import entrevista.model.Pessoa;
 import entrevista.model.Tarefa;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import entrevista.service.TarefaService;
 import io.quarkus.panache.common.Sort;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -23,6 +22,9 @@ import jakarta.ws.rs.core.Response;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TarefaResource {
+	
+	 @Inject
+	    TarefaService tarefaService;
 
     @POST
     @Transactional
@@ -76,6 +78,14 @@ public class TarefaResource {
     @Path("/pendentes")
     public List<Tarefa> listarTarefasPendentes() {
         return Tarefa.list("finalizado = false", Sort.ascending("prazo"));
+    }
+    
+    @GET
+    @Path("/tarefas/pendentes")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Tarefa> listarTarefasSemAlocacaoMaisAntigas() {
+        // Lista as 3 tarefas sem pessoa alocada com os prazos mais antigos
+        return tarefaService.listarTarefasSemAlocacaoMaisAntigas(3);
     }
     
     

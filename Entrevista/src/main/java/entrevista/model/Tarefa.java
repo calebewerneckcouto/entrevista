@@ -26,6 +26,7 @@ public class Tarefa extends PanacheEntityBase {
 
 	@ManyToOne(cascade = CascadeType.MERGE)
 	public Pessoa pessoa;
+	
 
 
 	public String getTitulo() {
