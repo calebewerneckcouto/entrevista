@@ -85,6 +85,15 @@ public class Tarefa extends PanacheEntityBase {
 		this.pessoa = pessoa;
 	}
 
+	public int getHorasGastas() {
+		return this.getHorasGastas();
+		
+	}
+	
+	
+	
+
+	
 	
 
 }
